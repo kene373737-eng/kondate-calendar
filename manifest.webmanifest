@@ -1,0 +1,13 @@
+{
+  "id": "./",
+  "name": "献立カレンダー",
+  "short_name": "献立カレンダー",
+  "description": "個人用の献立と料理写真を端末内に記録するカレンダー",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7f3",
+  "theme_color": "#536b4f",
+  "icons": []
+}

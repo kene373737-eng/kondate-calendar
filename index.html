@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#536b4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="献立カレンダー">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>献立カレンダー</title>
+<style>
+:root{--green:#536b4f;--pale:#e9f0e5;--ink:#243024;--muted:#687368;--line:#dce3d8;--paper:#fff;--bg:#f5f7f3;--red:#a63e35}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
+header{background:var(--green);color:white;padding:18px 16px 14px;position:sticky;top:0;z-index:2}
+.headrow{display:flex;align-items:center;justify-content:space-between;gap:10px}h1{font-size:21px;margin:0;font-weight:750}.monthnav{display:flex;align-items:center;gap:8px}.monthnav strong{min-width:112px;text-align:center;font-size:17px}
+button,.filebtn{font:inherit;cursor:pointer;border:0;border-radius:11px;padding:10px 13px;background:var(--pale);color:var(--ink);font-weight:650}.monthnav button{background:#ffffff24;color:white;padding:7px 12px}.container{max-width:850px;margin:0 auto;padding:14px}
+.legend{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 12px}.legend span,.tag{display:inline-block;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:650;background:#e7eee3;color:#385438}.legend .dish,.tag.dish{background:#f8e8d9;color:#87502b}
+.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.weekday{text-align:center;font-size:12px;color:var(--muted);padding:4px 0}.day{min-height:73px;background:white;border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:left;min-width:0;overflow:hidden}.day .num{font-size:13px;font-weight:750}.day .dots{margin-top:7px;display:flex;flex-wrap:wrap;gap:3px}.day .mini{font-size:10px;line-height:1.25;padding:3px 4px;border-radius:5px;background:#e5eee1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.day .mini.dish{background:#f8e8d9}.day.selected{outline:2px solid var(--green);background:#f0f6ec}.day.today .num:after{content:" 今日";font-size:9px;color:var(--green)}.day.empty{background:transparent;border-color:transparent;pointer-events:none}.day.hasphoto:after{content:"写真あり";display:block;font-size:9px;color:var(--muted);margin-top:3px}
+.panel{margin-top:16px;background:white;border:1px solid var(--line);border-radius:16px;padding:16px}.panel h2{font-size:19px;margin:0 0 14px}.field{margin:13px 0}.field label,.label{display:block;font-size:13px;font-weight:750;margin-bottom:7px}.field input[type=text],.field textarea,.field select{width:100%;font:inherit;padding:11px;border:1px solid #cfd8cb;border-radius:10px;background:white;color:var(--ink)}textarea{min-height:66px;resize:vertical}.choices{display:flex;flex-wrap:wrap;gap:7px}.choice{background:#f1f4ef;border:1px solid var(--line);padding:8px 10px;border-radius:999px;font-size:13px}.choice input{margin:0 5px 0 0;accent-color:var(--green)}.photoarea{display:flex;flex-direction:column;gap:10px}.photoarea img{max-width:100%;max-height:300px;object-fit:contain;align-self:flex-start;border-radius:12px;background:#f1f1f1}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.primary{background:var(--green);color:white}.danger{background:#fae9e7;color:var(--red)}.subtle{background:#eef1ec}.notice{font-size:12px;line-height:1.6;color:var(--muted);margin:12px 0}.footer{font-size:12px;color:var(--muted);padding:20px 4px;text-align:center}.hidden{display:none!important}.status{font-size:12px;color:var(--muted);margin-top:8px;min-height:1em}
+@media(min-width:600px){.day{min-height:88px;padding:8px}.day .mini{font-size:11px}.container{padding:20px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="headrow">
+  <h1>🥢 献立カレンダー</h1>
+  <div class="monthnav"><button id="prev" aria-label="前の月">‹</button><strong id="monthLabel"></strong><button id="next" aria-label="次の月">›</button></div>
+ </div>
+</header>
+<main class="container">
+ <div class="legend"><span>ジャンル</span><span class="dish">料理の種類</span></div>
+ <div class="calendar" id="calendar" aria-label="月間カレンダー"></div>
+ <section class="panel" id="editor">
+  <h2 id="selectedTitle">日付を選択してください</h2>
+  <div class="field"><label for="breakfast">朝食</label><input id="breakfast" type="text" placeholder="例：トースト、ヨーグルト"></div>
+  <div class="field"><label for="lunch">昼食</label><input id="lunch" type="text" placeholder="例：おにぎり、味噌汁"></div>
+  <div class="field"><label for="dinner">夕食</label><input id="dinner" type="text" placeholder="例：焼き鮭、ご飯、味噌汁"></div>
+  <div class="field"><span class="label">ジャンル（複数選択可）</span><div class="choices" id="genres"></div></div>
+  <div class="field"><span class="label">料理の種類（複数選択可）</span><div class="choices" id="dishTypes"></div></div>
+  <div class="field"><label for="memo">メモ（任意）</label><textarea id="memo" placeholder="作り方のメモ、家族の感想など"></textarea></div>
+  <div class="field"><span class="label">写真（1日につき1枚）</span>
+   <div class="photoarea"><input id="photoInput" type="file" accept="image/*"><img id="photoPreview" class="hidden" alt="登録した料理写真"><button id="removePhoto" class="subtle hidden" type="button">写真を外す</button></div>
+   <div class="notice">写真はこのアプリ内のiPhoneストレージに保存します。大きな写真は保存時に縮小します。</div>
+  </div>
+  <div class="actions"><button id="save" class="primary">この日の記録を保存</button><button id="clear" class="subtle">入力をクリア</button><button id="delete" class="danger">この日の記録を削除</button></div>
+  <div class="status" id="status" role="status"></div>
+ </section>
+ <section class="panel">
+  <h2>バックアップ</h2>
+  <p class="notice">機種変更やブラウザデータ削除に備えて、定期的にバックアップを書き出してください。バックアップファイルには献立と写真が含まれます。ファイル自体は安全な場所に保管してください。</p>
+  <div class="actions"><button id="exportBtn">バックアップを書き出す</button><label class="filebtn" for="importFile">バックアップを読み込む</label><input id="importFile" type="file" accept="application/json,.json" class="hidden"></div>
+  <div class="status" id="backupStatus" role="status"></div>
+ </section>
+ <div class="footer">個人用・端末内保存設計 / 献立データを外部サーバーへ送信しません</div>
+</main>
+<script>
+"use strict";
+const DB_NAME="kondate-calendar-local", DB_VERSION=1, STORE="days";
+const GENRES=["和食","洋食","中華","韓国料理","エスニック","その他"];
+const DISH_TYPES=["肉料理","魚料理","野菜中心","麺類","丼もの","カレー","鍋もの","揚げ物","その他"];
+let db, currentDate = dateKey(new Date()), currentMonth = new Date(new Date().getFullYear(),new Date().getMonth(),1), photoData=null, records=new Map();
+const $=id=>document.getElementById(id);
+function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function parseKey(k){const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d)}
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>req.result.createObjectStore(STORE,{keyPath:"date"});req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function getAll(){return new Promise((resolve,reject)=>{const req=db.transaction(STORE,"readonly").objectStore(STORE).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function putRecord(rec){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).put(rec);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+function deleteRecord(k){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).delete(k);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+function refreshMap(){return getAll().then(rows=>{records=new Map(rows.map(r=>[r.date,r]));renderCalendar()})}
+function makeChoices(id,items,selected=[]){const host=$(id);host.innerHTML="";items.forEach(item=>{const label=document.createElement("label");label.className="choice";const input=document.createElement("input");input.type="checkbox";input.value=item;input.checked=selected.includes(item);label.append(input,document.createTextNode(item));host.append(label)})}
+function checked(id){return [...$(id).querySelectorAll("input:checked")].map(x=>x.value)}
+function renderCalendar(){
+ const host=$("calendar");host.innerHTML="";
+ const y=currentMonth.getFullYear(),m=currentMonth.getMonth();
+ $("monthLabel").textContent=`${y}年${m+1}月`;
+ ["月","火","水","木","金","土","日"].forEach(w=>{const el=document.createElement("div");el.className="weekday";el.textContent=w;host.append(el)});
+ const first=new Date(y,m,1), offset=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+ for(let i=0;i<offset;i++){const e=document.createElement("div");e.className="day empty";host.append(e)}
+ for(let d=1;d<=days;d++){
+  const key=dateKey(new Date(y,m,d)), rec=records.get(key), b=document.createElement("button");b.type="button";b.className="day"+(key===currentDate?" selected":"")+(key===dateKey(new Date())?" today":"")+(rec?.photo?" hasphoto":"");
+  const num=document.createElement("div");num.className="num";num.textContent=d;b.append(num);
+  if(rec){const tags=[...(rec.genres||[]).slice(0,1),...(rec.dishTypes||[]).slice(0,1)];if(tags.length){const dots=document.createElement("div");dots.className="dots";tags.forEach((t,i)=>{const s=document.createElement("span");s.className="mini"+(i===1?" dish":"");s.textContent=t;dots.append(s)});b.append(dots)}}
+  b.addEventListener("click",()=>selectDate(key));host.append(b)
+ }
+ while(host.children.length%7!==0){const e=document.createElement("div");e.className="day empty";host.append(e)}
+}
+function selectDate(key){currentDate=key;loadEditor();renderCalendar()}
+function loadEditor(){
+ const rec=records.get(currentDate)||{};const d=parseKey(currentDate);
+ $("selectedTitle").textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日の献立`;
+ ["breakfast","lunch","dinner","memo"].forEach(id=>$(id).value=rec[id]||"");
+ makeChoices("genres",GENRES,rec.genres||[]);makeChoices("dishTypes",DISH_TYPES,rec.dishTypes||[]);
+ photoData=rec.photo||null;showPhoto();$("status").textContent="";
+}
+function showPhoto(){$("photoPreview").classList.toggle("hidden",!photoData);$("removePhoto").classList.toggle("hidden",!photoData);if(photoData)$("photoPreview").src=photoData;else $("photoPreview").removeAttribute("src")}
+function clearEditor(){["breakfast","lunch","dinner","memo"].forEach(id=>$(id).value="");makeChoices("genres",GENRES);makeChoices("dishTypes",DISH_TYPES);photoData=null;showPhoto()}
+function resizeImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>{const img=new Image();img.onerror=()=>reject(new Error("画像を読み込めません"));img.onload=()=>{const max=1400,scale=Math.min(1,max/Math.max(img.width,img.height));const canvas=document.createElement("canvas");canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL("image/jpeg",.82))};img.src=reader.result};reader.readAsDataURL(file)})}
+$("photoInput").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{photoData=await resizeImage(file);showPhoto();$("status").textContent="写真を選択しました。保存ボタンを押してください。"}catch(err){$("status").textContent="写真を読み込めませんでした。別の画像をお試しください。"}e.target.value=""});
+$("removePhoto").addEventListener("click",()=>{photoData=null;showPhoto()});
+$("save").addEventListener("click",async()=>{try{const rec={date:currentDate,breakfast:$("breakfast").value.trim(),lunch:$("lunch").value.trim(),dinner:$("dinner").value.trim(),genres:checked("genres"),dishTypes:checked("dishTypes"),memo:$("memo").value.trim(),photo:photoData,updatedAt:new Date().toISOString()};if(!rec.breakfast&&!rec.lunch&&!rec.dinner&&!rec.memo&&!rec.genres.length&&!rec.dishTypes.length&&!rec.photo){$("status").textContent="入力が空です。記録を残す場合は内容を入力してください。";return}await putRecord(rec);await refreshMap();$("status").textContent="保存しました。この端末内に保存されています。"}catch(e){$("status").textContent="保存できませんでした。空き容量を確認するか、写真を小さくしてください。"}});
+$("clear").addEventListener("click",()=>{if(confirm("入力欄を空にしますか？（保存済みデータは削除されません）"))clearEditor()});
+$("delete").addEventListener("click",async()=>{if(!confirm(`${currentDate}の記録を削除しますか？写真も削除されます。`))return;await deleteRecord(currentDate);await refreshMap();clearEditor();$("status").textContent="この日の記録を削除しました。"});
+$("prev").addEventListener("click",()=>{currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()-1,1);renderCalendar()});
+$("next").addEventListener("click",()=>{currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+1,1);renderCalendar()});
+$("exportBtn").addEventListener("click",async()=>{try{const rows=await getAll(),blob=new Blob([JSON.stringify({app:"kondate-calendar",version:1,exportedAt:new Date().toISOString(),records:rows},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`献立カレンダー-backup-${dateKey(new Date())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);$("backupStatus").textContent="バックアップを書き出しました。安全な場所に保管してください。"}catch(e){$("backupStatus").textContent="書き出しに失敗しました。"}});
+$("importFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;if(!confirm("バックアップの内容を現在の記録に追加・上書きします。続けますか？")){e.target.value="";return}try{const data=JSON.parse(await file.text());if(data.app!=="kondate-calendar"||!Array.isArray(data.records))throw new Error("形式が違います");for(const r of data.records){if(typeof r.date!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(r.date))continue;await putRecord(r)}await refreshMap();loadEditor();$("backupStatus").textContent="バックアップを読み込みました。既存と同じ日付はバックアップ内容で上書きされました。"}catch(err){$("backupStatus").textContent="読み込みに失敗しました。有効なバックアップJSONを選んでください。"}e.target.value=""});
+(async()=>{try{db=await openDB();await refreshMap();loadEditor();if("serviceWorker" in navigator && location.protocol!=="file:"){navigator.serviceWorker.register("./sw.js").catch(()=>{})}}catch(e){$("selectedTitle").textContent="保存機能を開始できません";$("status").textContent="このページをHTTPSで開いているか確認してください。"}})();
+</script>
+</body>
+</html>
